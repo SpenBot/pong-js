@@ -18,6 +18,8 @@
 
 >> FEATURES TO ADD
 
+>> More stylized, and maybe a fun twist.
+
 >> Win Condition
 >> Ball Countdown to Start, and Random direction
 >> Borders
