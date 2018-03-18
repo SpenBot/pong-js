@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel = "stylesheet" type = "text/css" href = "game.css" />
+
+    <audio id="bounceSound" src="sounds/bounce-sound.mp3"></audio>
+    <audio id="hitSound" src="sounds/hit-sound.mp3"></audio>
+
+  </head>
+
+  <body>
+
+
+    <canvas id="gameCanvas" width="640" height="360"></canvas>
+
+
+    <script>
+
+
+
+/////////// Variables //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      let canvas
+      let canvasContext
+
+      let p1Score = 0
+      let p2Score = 0
+      const winScore = 3
+
+      let showWinScreen = false
+
+      let ballPositionX = 100
+      let ballPositionY = 100
+
+      let ballSpeedX = 5
+      let ballSpeedY = 5
+
+      let paddle1PostionY = 150
+      let paddle2PostionY = 150
+      const paddleHeight = 60
+
+
+/////////// Handle Mouse Position //////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function calculateMousePosition (evt) {
+        let rect = canvas.getBoundingClientRect()
+        let root = document.documentElement
+        // let mousePositionX = evt.clientX - rect.left - root.scrollLeft
+        let mousePositionY = evt.clientY - rect.top - root.scrollTop
+
+        return {
+          // x : mousePositionX,
+          y : mousePositionY
+        }
+
+      }
+
+/////////// Handle Mouse Click /////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function handleMouseClick (evt) {
+        if (showWinScreen) {
+          p1Score = 0
+          p2Score = 0
+          showWinScreen = false
+        }
+
+      }
+
+/////////// On Window Load /////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      window.onload = function() {
+
+        console.log("Window loaded.")
+
+        canvas = document.getElementById('gameCanvas')
+        canvasContext = canvas.getContext('2d')
+
+        var framesPerSec = 60
+
+        setInterval(() => {
+          moveEverything()
+          drawEverything()
+          // console.log(`Ball: X=${ballPositionX}`)
+          // console.log(`Ball: Y=${ballPositionY}`)
+        }, 1000/framesPerSec)
+
+        canvas.addEventListener('mousemove',
+          function (evt) {
+            let mousePos = calculateMousePosition(evt)
+            paddle1PostionY = mousePos.y - paddleHeight/2
+          }
+        )
+
+        canvas.addEventListener('mousedown', handleMouseClick)
+
+      }
+
+
+
+
+
+
+/////////// Draw Circle Function ///////////////////////////////////
+      function colorCircle(centerX, centerY, radius, drawColor) {
+        canvasContext.fillStyle = drawColor
+        canvasContext.beginPath()
+        canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2, true)
+        canvasContext.fill()
+      }
+
+
+/////////// Draw Rectangle Function ////////////////////////////////
+      function colorRect(leftX, topY, width, height, drawColor) {
+        canvasContext.fillStyle = drawColor
+        canvasContext.fillRect(leftX, topY, width, height,)
+      }
+
+/////////// Draw Score Function ////////////////////////////////
+      function drawScore(p1Score, p2Score) {
+        canvasContext.fillStyle = 'white'
+        canvasContext.fillText(p1Score, 100, 100)
+        canvasContext.fillText(p2Score, 540, 100)
+      }
+
+/////////// Draw Net Function ////////////////////////////////
+      function drawNet () {
+        for (i = 10; i < canvas.height; i+=40) {
+          colorRect( (canvas.width / 2) - 1, i, 2, 20, 'white')
+        }
+      }
+
+
+
+
+
+
+/////////// Ball Reset /////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function ballReset() {
+
+        if (p1Score === 3 || p2Score === 3) {
+          showWinScreen = true
+        }
+
+        ballPositionX = canvas.width / 2
+        ballPositionY = canvas.height / 2
+        ballSpeedY = 5
+        ballSpeedX = -ballSpeedX
+      }
+
+
+
+/////////// Computer Movement //////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function computerMovement() {
+
+        let paddle2CenterY = paddle2PostionY + (paddleHeight / 2)
+
+        if (paddle2CenterY < ballPositionY - 20) {
+          paddle2PostionY += 5
+        // } else if (paddle2CenterY < ballPositionY - 100) {
+        //   paddle2PostionY += 8
+      } else if (paddle2CenterY > ballPositionY + 20) {
+          paddle2PostionY -= 5
+        // } else if (paddle2CenterY > ballPositionY + 100) {
+        //   paddle2PostionY -= 8
+        }
+      }
+
+
+
+/////////// Movement Algorithms ////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function moveEverything() {
+
+        /////////// win screen /////////////////////////////////////
+        if (showWinScreen) {
+          return
+        }
+
+        /////////// move ball //////////////////////////////////////
+        ballPositionX += ballSpeedX
+        ballPositionY += ballSpeedY
+
+        /////////// left paddle hit ////////////////////////////////
+        if (ballPositionX === 35) {
+          if (ballPositionY > paddle1PostionY &&
+              ballPositionY < paddle1PostionY + paddleHeight) {
+                ballSpeedX = -ballSpeedX
+
+                let paddleCenter = paddle1PostionY + 30
+                let ballDifference = (ballPositionY - paddleCenter)
+
+                if (ballDifference < 0) {
+                  ballDifference = ballDifference * -1
+                }
+
+                if (ballDifference > 10  &&  ballDifference < 20) {
+                  ballSpeedY *= 1.2
+                } else if (ballDifference > 20  &&  ballDifference < 30) {
+                  ballSpeedY *= 1.5
+                } else {
+                  ballSpeedY
+                }
+
+                document.getElementById('hitSound').play()
+
+                console.log("HIT!")
+                console.log("ball difference " + ballDifference)
+                console.log("ball speed Y " + ballSpeedY)
+
+          }
+        }
+
+        /////////// right paddle hit ////////////////////////////////
+        if (ballPositionX === 605) {
+          if (ballPositionY > paddle2PostionY &&
+              ballPositionY < paddle2PostionY + paddleHeight) {
+                ballSpeedX = -ballSpeedX
+
+                let paddleCenter = paddle2PostionY + 30
+                let ballDifference = (ballPositionY - paddleCenter)
+
+                if (ballDifference < 0) {
+                  ballDifference = ballDifference * -1
+                }
+
+                if (ballDifference > 10  &&  ballDifference < 20) {
+                  ballSpeedY *= 1.2
+                } else if (ballDifference > 20  &&  ballDifference < 30) {
+                  ballSpeedY *= 1.5
+                } else {
+                  ballSpeedY
+                }
+
+                document.getElementById('hitSound').play()
+
+                console.log("HIT!")
+                console.log("ball difference" + ballDifference)
+                console.log("ball speed Y" + ballSpeedY)
+          }
+        }
+
+        /////////// left side score ///////////////////////////////
+        if (ballPositionX <= 5) {
+          p2Score++
+          ballReset()
+        }
+
+        /////////// right side score ///////////////////////////////
+        if (ballPositionX >= 635) {
+          p1Score++
+          ballReset()
+        }
+
+        /////////// top side bounce ///////////////////////////////
+        if (ballPositionY <= 5) {
+          ballSpeedY = -ballSpeedY
+          document.getElementById('bounceSound').play()
+        }
+
+        /////////// bottom side bounce ////////////////////////////
+        if (ballPositionY >= 355) {
+          ballSpeedY = -ballSpeedY
+          document.getElementById('bounceSound').play()
+        }
+
+      }
+
+
+/////////// Draw Functions /////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+      function drawEverything() {
+
+        computerMovement()
+
+        /////////// draw background ///////////////////////////////
+        colorRect(0, 0, canvas.width, canvas.height, 'black')
+
+        /////////// draw win screen ///////////////////////////////
+        if (showWinScreen) {
+          canvasContext.fillStyle = 'white'
+
+          if (p1Score === winScore) {
+            canvasContext.fillText("Player Won!", 300, 100)
+          } else if (p2Score === winScore) {
+            canvasContext.fillText("Computer Won!", 292, 100)
+          }
+
+          canvasContext.fillText("Click to Continue", 290, 140)
+          return
+        }
+
+        /////////// draw net //////////////////////////////
+        drawNet()
+
+        /////////// draw left paddle //////////////////////////////
+        colorRect(20, paddle1PostionY, 15, paddleHeight, 'white')
+
+        /////////// draw right paddle /////////////////////////////
+        colorRect(605, paddle2PostionY, 15, paddleHeight, 'white')
+
+        /////////// draw ball /////////////////////////////////////
+        colorCircle(ballPositionX, ballPositionY, 5, 'red')
+
+        /////////// draw score/////// /////////////////////////////
+        drawScore(p1Score, p2Score)
+
+      }
+
+
+
+    </script>
+  </body>
+
+</html>
